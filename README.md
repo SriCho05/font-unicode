@@ -76,6 +76,48 @@ docker-compose up -d
 # Access at http://localhost
 ```
 
+## Vercel Deployment (Serverless)
+
+### Quick Deploy to Vercel
+
+1. **GitHub Integration**:
+   - Connect your GitHub repository to Vercel
+   - Deploy with one click
+
+2. **Vercel CLI**:
+   ```bash
+   npm i -g vercel
+   vercel
+   ```
+
+### Vercel Features & Limitations
+
+**✅ What works on Vercel:**
+- Text conversion and preview
+- TXT file processing
+- Web interface
+- Font detection
+- Client-side downloads
+
+**⚠️ Vercel limitations:**
+- TXT files only (no DOCX/PDF processing)
+- 30-second timeout
+- No persistent file storage
+
+**📚 Complete Vercel Guide**: See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)
+
+### Choose Your Deployment
+
+| Feature | Docker | Vercel |
+|---------|--------|--------|
+| **TXT files** | ✅ | ✅ |
+| **DOCX files** | ✅ | ❌ |
+| **PDF files** | ✅ | ❌ |
+| **File storage** | ✅ | ❌ |
+| **Processing time** | Unlimited | 30s limit |
+| **Setup complexity** | Medium | Easy |
+| **Hosting** | Self-hosted | Managed |
+
 ## Usage
 
 1. **Upload Document**: Select your document file (TXT, DOC, DOCX, or PDF)
