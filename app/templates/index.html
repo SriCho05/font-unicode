@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marathi Font Converter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-language"></i> Marathi Font Converter
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0">
+                            <i class="fas fa-file-upload"></i> 
+                            Convert Non-Unicode Marathi Fonts to Unicode
+                        </h4>
+                        <p class="text-muted mb-0 mt-2">
+                            Upload documents with DVTT Yogesh or DTT Dhruv fonts to convert them to Unicode Lohit Marathi
+                        </p>
+                    </div>
+                    <div class="card-body">
+                        <!-- Flash Messages -->
+                        {% with messages = get_flashed_messages() %}
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <!-- Upload Form -->
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="fileInput" class="form-label">Select Document</label>
+                                <input type="file" class="form-control" id="fileInput" name="file" 
+                                       accept=".txt,.doc,.docx,.pdf" required>
+                                <div class="form-text">
+                                    Supported formats: TXT, DOC, DOCX, PDF (Max size: 16MB)
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="preserveEnglish" checked>
+                                    <label class="form-check-label" for="preserveEnglish">
+                                        Preserve English text
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="preserveNumbers" checked>
+                                    <label class="form-check-label" for="preserveNumbers">
+                                        Preserve numbers and punctuation
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="convertBtn">
+                                <i class="fas fa-exchange-alt"></i> Convert Document
+                            </button>
+                        </form>
+
+                        <!-- Progress Bar -->
+                        <div id="progressContainer" class="mt-3" style="display: none;">
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <div class="text-center mt-2">
+                                <span id="progressText">Processing...</span>
+                            </div>
+                        </div>
+
+                        <!-- Results -->
+                        <div id="resultsContainer" class="mt-4" style="display: none;">
+                            <hr>
+                            <h5><i class="fas fa-check-circle text-success"></i> Conversion Complete</h5>
+                            
+                            <!-- Download Button -->
+                            <div class="mb-3">
+                                <a id="downloadBtn" href="#" class="btn btn-success btn-lg">
+                                    <i class="fas fa-download"></i> Download Converted Document
+                                </a>
+                            </div>
+
+                            <!-- Statistics -->
+                            <div id="statsContainer" class="row">
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Conversion Statistics</h6>
+                                            <div id="conversionStats"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Detected Fonts</h6>
+                                            <div id="detectedFonts"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview -->
+                            <div class="mt-3">
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#previewCollapse">
+                                    <i class="fas fa-eye"></i> Preview Changes
+                                </button>
+                            </div>
+                            
+                            <div class="collapse mt-3" id="previewCollapse">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Original Text:</h6>
+                                        <div class="border p-3 bg-light" style="max-height: 200px; overflow-y: auto;">
+                                            <pre id="originalPreview"></pre>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Converted Text:</h6>
+                                        <div class="border p-3 bg-light" style="max-height: 200px; overflow-y: auto;">
+                                            <pre id="convertedPreview"></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="row mt-5">
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-search fa-3x text-primary mb-3"></i>
+                                <h5>Smart Detection</h5>
+                                <p class="text-muted">
+                                    Automatically detects DVTT Yogesh and DTT Dhruv fonts in your documents
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-table fa-3x text-success mb-3"></i>
+                                <h5>Format Preservation</h5>
+                                <p class="text-muted">
+                                    Maintains document formatting, tables, and structure during conversion
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-globe fa-3x text-info mb-3"></i>
+                                <h5>Unicode Standard</h5>
+                                <p class="text-muted">
+                                    Converts to Unicode Lohit Marathi for universal compatibility
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Preview Tool -->
+                <div class="card mt-5">
+                    <div class="card-header">
+                        <h5><i class="fas fa-text-width"></i> Quick Text Preview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="previewInput" class="form-label">Enter text to preview conversion:</label>
+                                <textarea class="form-control" id="previewInput" rows="4" 
+                                          placeholder="Type or paste your non-Unicode Marathi text here..."></textarea>
+                                <button class="btn btn-primary mt-2" id="previewBtn">
+                                    <i class="fas fa-eye"></i> Preview Conversion
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Converted text:</label>
+                                <div class="border p-3 bg-light" style="min-height: 120px;">
+                                    <div id="previewOutput"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-light mt-5 py-4">
+        <div class="container text-center">
+            <p class="text-muted mb-0">
+                Marathi Font Converter &copy; 2025 | 
+                <a href="#" class="text-muted">Documentation</a> | 
+                <a href="#" class="text-muted">Support</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
